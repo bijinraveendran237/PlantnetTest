@@ -1,8 +1,11 @@
 package com.example.myapplication
 
+import android.Manifest
+import android.annotation.SuppressLint
 import android.app.AlertDialog
 import android.app.ProgressDialog
 import android.content.Intent
+import android.content.pm.PackageManager
 import android.graphics.Bitmap
 import android.net.Uri
 import android.os.Bundle
@@ -14,6 +17,8 @@ import android.widget.ProgressBar
 import android.widget.TextView
 import android.widget.Toast
 import androidx.appcompat.app.AppCompatActivity
+import androidx.core.app.ActivityCompat
+import androidx.core.content.ContextCompat
 import androidx.recyclerview.widget.LinearLayoutManager
 import androidx.recyclerview.widget.RecyclerView
 import retrofit2.Call
@@ -31,6 +36,7 @@ class MainActivity : AppCompatActivity() {
     private lateinit var customAdapter: CustomAdapter
     lateinit var recyclerView: RecyclerView
     private var progressBar: ProgressBar? = null
+    private val CAMERA_REQUEST_CODE=123;
 
     override fun onCreate(savedInstanceState:Bundle?) {
         super.onCreate(savedInstanceState)
@@ -47,10 +53,11 @@ class MainActivity : AppCompatActivity() {
         recyclerView.adapter = customAdapter
 
         btn!!.setOnClickListener { showDemoData() }
-        tvRetakepic!!.setOnClickListener { showPictureDialog() }
+        tvRetakepic!!.setOnClickListener { takepicture() }
 
         //method used to give popup for camera when app gets on
-        showPictureDialog()
+
+        takepicture()
     }
 
     private fun showDemoData() {
@@ -74,6 +81,16 @@ class MainActivity : AppCompatActivity() {
                 Log.d("error", t.toString())
             }
         })
+    }
+
+    private fun takepicture(){
+        val permisison2= ContextCompat.checkSelfPermission(this, Manifest.permission.CAMERA)
+        if(permisison2!=PackageManager.PERMISSION_GRANTED){
+            ActivityCompat.requestPermissions(this, arrayOf(Manifest.permission.CAMERA),CAMERA_REQUEST_CODE)
+        }
+        else{
+            showPictureDialog()
+        }
     }
 
     private fun showPictureDialog() {
@@ -152,5 +169,17 @@ class MainActivity : AppCompatActivity() {
 //            })
         return ""
     }
+    @SuppressLint("MissingSuperCall")
+    override fun onRequestPermissionsResult(requestCode: Int, permissions: Array<String>, grantResults: IntArray) {
+        when (requestCode) {
+            CAMERA_REQUEST_CODE -> {
 
+                if (grantResults.isEmpty() || grantResults[0] != PackageManager.PERMISSION_GRANTED) {
+                    Toast.makeText(this,"Permission Denied",Toast.LENGTH_SHORT).show()
+                } else {
+                    showPictureDialog()
+                }
+            }
+        }
+    }
 }
